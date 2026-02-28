@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>nysrioo - portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=Sora:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="bg-noise" aria-hidden="true"></div>
+
+  <main class="page">
+    <div class="hero">
+      <section class="intro" aria-label="Profile header">
+        <p class="name" id="copy-name" data-copy="nysrioo" role="button" tabindex="0" aria-label="Copy nysrioo to clipboard">nysrioo</p>
+        <p class="tagline" data-i18n="tagline">self-taught programmer</p>
+        <nav class="links" aria-label="Social links">
+          <a class="icon-link" href="https://discord.com/users/1244907617319391315" target="_blank" rel="noreferrer" aria-label="Discord">
+            <img src="https://cdn.simpleicons.org/discord/BEBEBE" alt="">
+          </a>
+          <a class="icon-link" href="https://github.com/nysrioo" target="_blank" rel="noreferrer" aria-label="GitHub">
+            <img src="https://cdn.simpleicons.org/github/BEBEBE" alt="">
+          </a>
+          <a class="icon-link" href="https://www.roblox.com/users/1051574/profile" target="_blank" rel="noreferrer" aria-label="Roblox profile">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M5.16 0 0 18.84 18.84 24 24 5.16 5.16 0Zm4.91 8.29 5.64 1.64-1.64 5.64-5.64-1.64 1.64-5.64Z"></path>
+            </svg>
+          </a>
+        </nav>
+      </section>
+
+      <section class="marquee-area" aria-label="Technology stack">
+        <div class="marquee-row" data-speed="48">
+          <div class="marquee-track"></div>
+        </div>
+        <div class="marquee-row reverse" data-speed="58">
+          <div class="marquee-track"></div>
+        </div>
+      </section>
+
+      <section class="reviews" aria-label="Client reviews">
+        <div class="reviews-head">
+          <p class="reviews-kicker">Client reviews</p>
+        </div>
+        <div class="review-grid">
+          <article class="review-card">
+            <div class="review-meta">
+              <img class="review-avatar" src="https://cdn.discordapp.com/avatars/1252696182531297411/e6979b03face3cf4905003c1cae4dad0.webp?size=1024" alt="@drwfy profile photo" loading="lazy" decoding="async">
+              <p class="review-author">@drfwy (sola)</p>
+            </div>
+            <p class="review-text">"really good coder, quality code, fast turn around times. must order from her!!!."</p>
+            <p class="review-rating" aria-label="5 out of 5 stars">&#9733;&#9733;&#9733;&#9733;&#9733;</p>
+          </article>
+          <article class="review-card">
+            <div class="review-meta">
+              <img class="review-avatar" src="https://cdn.discordapp.com/avatars/737181735846019112/5548b3f20ca76bf3e353107632a1927f.webp?size=1024" alt="@.imjude. profile photo" loading="lazy" decoding="async">
+              <p class="review-author">@.imjude. (imjude)</p>
+            </div>
+            <p class="review-text">"placeholder."</p>
+            <p class="review-rating" aria-label="4 out of 5 stars">&#9733;&#9733;&#9733;&#9733;&#9734;</p>
+          </article>
+          <article class="review-card">
+            <div class="review-meta">
+              <img class="review-avatar" src="https://cdn.discordapp.com/avatars/1399728978981290025/099f94250c4ceb63dc8066ce960b2da5.webp?size=1024" alt="@a182ajakqkqoeurvz profile photo" loading="lazy" decoding="async">
+              <p class="review-author">@a182ajakqkqoeurvz (mar)</p>
+            </div>
+            <p class="review-text">"placeholder."</p>
+            <p class="review-rating" aria-label="5 out of 5 stars">&#9733;&#9733;&#9733;&#9733;&#9733;</p>
+          </article>
+        </div>
+        <div class="reviews-controls" id="reviews-controls" aria-label="Review navigation">
+          <button class="reviews-nav" id="reviews-prev" type="button" aria-label="Previous reviews">Previous</button>
+          <div class="reviews-timer" id="reviews-timer" aria-hidden="true"><span id="reviews-timer-bar"></span></div>
+          <button class="reviews-nav" id="reviews-next" type="button" aria-label="Next reviews">Next</button>
+        </div>
+      </section>
+    </div>
+
+    <footer class="site-footer" aria-label="Footer links">
+      <a href="#terms-of-service" id="terms-open" data-i18n="footer_terms">Terms of Service</a>
+      <span class="footer-sep" aria-hidden="true">&bull;</span>
+      <a href="#get-in-touch" id="contact-open" data-i18n="footer_contact">Get in Touch</a>
+      <span class="footer-sep" aria-hidden="true">&bull;</span>
+      <a href="#pulse-customs" id="pulse-open" data-i18n="footer_pulse">Pulse customs</a>
+      <div class="footer-tools" aria-label="Appearance and accessibility controls">
+        <button class="footer-icon-btn" id="theme-toggle-btn" type="button" aria-label="Toggle theme mode" title="Toggle theme mode">
+          <svg class="footer-icon icon-dark" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M20.7 14.3A8 8 0 0 1 9.7 3.3a8 8 0 1 0 11 11z"></path>
+          </svg>
+          <svg class="footer-icon icon-light" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"></path>
+          </svg>
+          <span class="footer-tool-label" data-i18n="footer_theme_toggle">Switch Theme</span>
+        </button>
+        <button class="footer-icon-btn" id="accessibility-open" type="button" aria-label="Open accessibility settings" title="Accessibility">
+          <svg class="footer-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="9.5" cy="5" r="1.7"></circle>
+            <circle cx="15.5" cy="16.5" r="3.5"></circle>
+            <path d="M10 7.2v5.2h3.3M10 9.8h4.4M13.3 12.4l1.6 3.1M10 12.4l-2.1 3.8M12.7 19.5h3.3"></path>
+          </svg>
+          <span class="footer-tool-label" data-i18n="footer_accessibility">Accessibility</span>
+        </button>
+      </div>
+    </footer>
+  </main>
+
+  <div class="modal-backdrop" id="terms-modal" aria-hidden="true">
+    <section class="pulse-modal" role="dialog" aria-modal="true" aria-labelledby="terms-title" aria-describedby="terms-copy">
+      <div class="modal-head">
+        <h2 class="pulse-title" id="terms-title" data-i18n="terms_title">Terms & Refund Policy</h2>
+        <button class="pulse-close" id="terms-close" aria-label="Close Terms of Service panel" data-i18n="close_btn">Close</button>
+      </div>
+      <p class="pulse-copy" id="terms-copy" data-i18n="terms_copy">By commissioning me, you agree to these terms and refund rules:</p>
+      <ul class="policy-list">
+        <li data-i18n="terms_li_1">I reserve the right to refuse service if you are disrespectful, or for any other reason at my discretion.</li>
+        <li data-i18n="terms_li_2">A 50% upfront payment is required before I begin work on your bot.</li>
+        <li data-i18n="terms_li_3">I do not accept USD payments. Payment is Robux only.</li>
+        <li data-i18n="terms_li_4">I provide coding/development only. I do not host bots.</li>
+        <li data-i18n="terms_li_5">I do not offer refunds unless a mistake was made on my end or I am unable to continue the project.</li>
+        <li data-i18n="terms_li_6">No refunds are offered after the final product has been delivered.</li>
+      </ul>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="pulse-modal" aria-hidden="true">
+    <section class="pulse-modal" role="dialog" aria-modal="true" aria-labelledby="pulse-title" aria-describedby="pulse-copy">
+      <div class="modal-head">
+        <h2 class="pulse-title" id="pulse-title">Pulse Customs</h2>
+        <button class="pulse-close" id="pulse-close" aria-label="Close Pulse Customs panel" data-i18n="close_btn">Close</button>
+      </div>
+      <img class="pulse-logo" src="public/logo.png" alt="Pulse Customs logo">
+      <p class="pulse-copy" id="pulse-copy" data-i18n="pulse_copy">
+        Welcome to Pulse Customs! Since 2024, we've been at the forefront of design, understanding exactly what our clients want and deserve, nothing less than the very best.
+      </p>
+      <a class="pulse-cta" href="https://discord.com/invite/pulsecustoms" target="_blank" rel="noreferrer" data-i18n="join_server_btn">Join Server</a>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="contact-modal" aria-hidden="true">
+    <section class="pulse-modal" role="dialog" aria-modal="true" aria-labelledby="contact-title" aria-describedby="contact-copy">
+      <div class="modal-head">
+        <h2 class="pulse-title" id="contact-title" data-i18n="contact_title">Get in Touch</h2>
+        <button class="pulse-close" id="contact-close" aria-label="Close Get in Touch panel" data-i18n="close_btn">Close</button>
+      </div>
+      <p class="pulse-copy" id="contact-copy" data-i18n="contact_copy">The best way to contact me is usually Discord.</p>
+      <a class="pulse-cta" href="https://discord.com/users/1244907617319391315" target="_blank" rel="noreferrer" data-i18n="contact_cta_btn">Get in Touch</a>
+      <div class="contact-divider" aria-hidden="true"></div>
+      <p class="contact-meta">
+        <span data-i18n="contact_user_label">User</span>:
+        <span class="copy-inline" data-copy="nysrioo" role="button" tabindex="0" aria-label="Copy username">nysrioo</span>
+        <span class="contact-sep" aria-hidden="true">&bull;</span>
+        <span data-i18n="contact_id_label">ID</span>:
+        <span class="copy-inline" data-copy="1244907617319391315" role="button" tabindex="0" aria-label="Copy user ID">1244907617319391315</span>
+      </p>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="accessibility-modal" aria-hidden="true">
+    <section class="pulse-modal a11y-modal" role="dialog" aria-modal="true" aria-labelledby="accessibility-title" aria-describedby="accessibility-copy">
+      <div class="modal-head">
+        <h2 class="pulse-title" id="accessibility-title" data-i18n="a11y_title">Accessibility</h2>
+        <button class="pulse-close" id="accessibility-close" aria-label="Close accessibility panel" data-i18n="close_btn">Close</button>
+      </div>
+      <p class="pulse-copy" id="accessibility-copy" data-i18n="a11y_copy">Adjust how the site looks and feels for readability and comfort.</p>
+      <div class="a11y-row">
+        <div class="a11y-copy">
+          <p class="a11y-label" data-i18n="a11y_text_label">Text Size</p>
+          <p class="a11y-subtle" data-i18n="a11y_text_subtle">Increase text size for readability.</p>
+        </div>
+        <button class="a11y-toggle" id="text-size-toggle" type="button" aria-pressed="false">Normal</button>
+      </div>
+      <div class="a11y-row">
+        <div class="a11y-copy">
+          <p class="a11y-label" data-i18n="a11y_motion_label">Reduce Motion</p>
+          <p class="a11y-subtle" data-i18n="a11y_motion_subtle">Minimize moving animations.</p>
+        </div>
+        <button class="a11y-toggle" id="motion-toggle" type="button" aria-pressed="false">Off</button>
+      </div>
+      <div class="a11y-row">
+        <div class="a11y-copy">
+          <p class="a11y-label" data-i18n="a11y_contrast_label">High Contrast</p>
+          <p class="a11y-subtle" data-i18n="a11y_contrast_subtle">Use stronger text contrast.</p>
+        </div>
+        <button class="a11y-toggle" id="contrast-toggle" type="button" aria-pressed="false">Off</button>
+      </div>
+      <div class="a11y-row">
+        <div class="a11y-copy">
+          <p class="a11y-label" data-i18n="a11y_lang_label">Languages</p>
+          <p class="a11y-subtle" data-i18n="a11y_lang_subtle">Choose a default language preference.</p>
+        </div>
+        <div class="a11y-language-switch" role="group" aria-label="Language selection">
+          <button class="a11y-chip-btn is-active" id="lang-en" type="button" data-lang="en" aria-pressed="true">English</button>
+          <button class="a11y-chip-btn" id="lang-es" type="button" data-lang="es" aria-pressed="false">Español</button>
+          <button class="a11y-chip-btn" id="lang-zh" type="button" data-lang="zh" aria-pressed="false">普通话</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="copy-toast" id="copy-toast" aria-live="polite" aria-atomic="true" data-i18n="copied_short">Copied</div>
+  <div class="ui-transition-overlay" id="ui-transition-overlay" aria-hidden="true">
+    <div class="ui-transition-inner">
+      <div class="ui-transition-spinner" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <p class="ui-transition-text" data-i18n="settings_loading">Applying changes...</p>
+    </div>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
