@@ -27,13 +27,23 @@ const themeToggleBtn=document.getElementById("theme-toggle-btn");
 const textSizeToggle=document.getElementById("text-size-toggle");
 const motionToggle=document.getElementById("motion-toggle");
 const contrastToggle=document.getElementById("contrast-toggle");
+const introOverlay=document.getElementById("intro-overlay");
+const introEnter=document.getElementById("intro-enter");
+const lightWarningToggle=document.getElementById("light-warning-toggle");
+const lightWarningModal=document.getElementById("light-warning-modal");
+const lightWarningClose=document.getElementById("light-warning-close");
+const lightWarningDisable=document.getElementById("light-warning-disable");
+const lightWarningContinue=document.getElementById("light-warning-continue");
 const languageButtons=Array.from(document.querySelectorAll(".a11y-chip-btn[data-lang]"));
 const uiTransitionOverlay=document.getElementById("ui-transition-overlay");
+const uiTransitionText=document.querySelector(".ui-transition-text");
 const themeStorageKey="nysrioo-theme";
 const textSizeStorageKey="nysrioo-text-size";
 const motionStorageKey="nysrioo-reduce-motion";
 const contrastStorageKey="nysrioo-contrast";
+const lightWarningStorageKey="nysrioo-light-warning-enabled";
 const languageStorageKey="nysrioo-language";
+const introSeenStorageKey="nysrioo-intro-seen";
 const translations={
   en:{
     tagline:"Self-taught programmer",
@@ -68,8 +78,14 @@ const translations={
     a11y_motion_subtle:"Minimize moving animations.",
     a11y_contrast_label:"High Contrast",
     a11y_contrast_subtle:"Use stronger text contrast.",
+    a11y_light_warning_label:"Light Mode Warning",
+    a11y_light_warning_subtle:"Show a notice when switching to light mode.",
     a11y_lang_label:"Languages",
     a11y_lang_subtle:"Choose a default language preference.",
+    light_warning_title:"Light Mode Notice",
+    light_warning_copy:"Light mode can feel very bright. It is mainly recommended for people who find dark layouts hard to read in low-light spaces.",
+    light_warning_disable_label:"Don't show this warning again",
+    light_warning_continue_btn:"Continue",
     close_btn:"Close",
     toggle_on:"On",
     toggle_off:"Off",
@@ -180,17 +196,24 @@ function currentLanguage(){const lang=document.documentElement.getAttribute("dat
 function t(key){const lang=currentLanguage();return translations[lang]?.[key]||translations.en[key]||"";}
 let uiTransitionTimer=null;
 let uiTransitionFinalizeTimer=null;
-function runSettingsTransition(applyChange){
+let pendingThemeSwitch=null;
+let introOpen=false;
+let introRevealTimer=null;
+let introExitTimer=null;
+function runSettingsTransition(applyChange,options={}){
   if(typeof applyChange!=="function")return;
   if(!uiTransitionOverlay){applyChange();return;}
+  const loadingLabel=typeof options.loadingLabel==="string"&&options.loadingLabel.trim()?options.loadingLabel:t("settings_loading");
+  const loadingMs=typeof options.loadingMs==="number"?Math.max(0,Math.floor(options.loadingMs)):800+Math.floor(Math.random()*401);
+  if(uiTransitionText)uiTransitionText.textContent=loadingLabel;
   if(uiTransitionTimer)clearTimeout(uiTransitionTimer);
   if(uiTransitionFinalizeTimer)clearTimeout(uiTransitionFinalizeTimer);
   uiTransitionOverlay.classList.add("is-active");
-  const loadingMs=800+Math.floor(Math.random()*401);
   uiTransitionTimer=setTimeout(()=>{
     uiTransitionOverlay.classList.remove("is-active");
     uiTransitionFinalizeTimer=setTimeout(()=>{
       applyChange();
+      if(uiTransitionText)uiTransitionText.textContent=t("settings_loading");
       uiTransitionFinalizeTimer=null;
     },140);
     uiTransitionTimer=null;
@@ -219,6 +242,46 @@ function refreshToggleText(){
     contrastToggle.setAttribute("aria-pressed",high?"true":"false");
     contrastToggle.textContent=high?t("toggle_on"):t("toggle_off");
   }
+  if(lightWarningToggle){
+    const enabled=document.documentElement.getAttribute("data-light-warning")!=="false";
+    lightWarningToggle.setAttribute("aria-pressed",enabled?"true":"false");
+    lightWarningToggle.textContent=enabled?t("toggle_on"):t("toggle_off");
+  }
+}
+function openIntroOverlay(){
+  if(!introOverlay)return;
+  if(introRevealTimer)clearTimeout(introRevealTimer);
+  if(introExitTimer)clearTimeout(introExitTimer);
+  introOpen=true;
+  introOverlay.classList.remove("is-exiting","is-revealed");
+  document.body.classList.remove("intro-exiting");
+  document.body.classList.add("intro-active");
+  introOverlay.classList.add("is-open");
+  introOverlay.setAttribute("aria-hidden","false");
+  introRevealTimer=setTimeout(()=>{
+    introOverlay.classList.add("is-revealed");
+    introRevealTimer=null;
+  },80);
+}
+function closeIntroOverlay(){
+  if(!introOverlay||!introOpen)return;
+  introOpen=false;
+  if(introRevealTimer){
+    clearTimeout(introRevealTimer);
+    introRevealTimer=null;
+  }
+  if(introExitTimer)clearTimeout(introExitTimer);
+  savePreference(introSeenStorageKey,"true");
+  introOverlay.classList.add("is-exiting");
+  introOverlay.classList.remove("is-revealed");
+  document.body.classList.add("intro-exiting");
+  document.body.classList.remove("intro-active");
+  introExitTimer=setTimeout(()=>{
+    introOverlay.classList.remove("is-open","is-exiting");
+    introOverlay.setAttribute("aria-hidden","true");
+    document.body.classList.remove("intro-exiting");
+    introExitTimer=null;
+  },920);
 }
 function applyTheme(theme){
   const nextTheme=theme==="light"?"light":"dark";
@@ -239,6 +302,40 @@ function applyContrast(state){
   const enabled=state==="high";
   document.documentElement.setAttribute("data-contrast",enabled?"high":"normal");
   refreshToggleText();
+}
+function applyLightWarning(state){
+  const enabled=state!=="false";
+  document.documentElement.setAttribute("data-light-warning",enabled?"true":"false");
+  refreshToggleText();
+}
+function openLightWarningModal(){
+  if(!lightWarningModal)return;
+  if(lightWarningDisable)lightWarningDisable.checked=false;
+  lightWarningModal.classList.add("is-open");
+  lightWarningModal.setAttribute("aria-hidden","false");
+  updateBodyModalState();
+}
+function dismissLightWarningModal(){
+  if(!lightWarningModal)return;
+  if(lightWarningDisable?.checked){
+    applyLightWarning("false");
+    savePreference(lightWarningStorageKey,"false");
+    lightWarningDisable.checked=false;
+  }
+  pendingThemeSwitch=null;
+  lightWarningModal.classList.remove("is-open");
+  lightWarningModal.setAttribute("aria-hidden","true");
+  updateBodyModalState();
+}
+function confirmLightWarningModal(){
+  const pending=pendingThemeSwitch;
+  pendingThemeSwitch=null;
+  dismissLightWarningModal();
+  if(!pending)return;
+  runSettingsTransition(()=>{
+    applyTheme(pending);
+    savePreference(themeStorageKey,pending);
+  });
 }
 function applyLanguage(lang){
   const nextLang=(lang==="es"||lang==="zh")?lang:"en";
@@ -348,22 +445,37 @@ function setupModal(openId,modalId,closeId,options={}){const trigger=document.ge
 const modalControllers=[setupModal("terms-open","terms-modal","terms-close"),setupModal("pulse-open","pulse-modal","pulse-close"),setupModal("contact-open","contact-modal","contact-close")].filter(Boolean);
 const accessibilityController=setupModal("accessibility-open","accessibility-modal","accessibility-close");
 if(accessibilityController)modalControllers.push(accessibilityController);
+if(lightWarningModal)modalControllers.push({modalId:"light-warning-modal",modal:lightWarningModal,dismiss:dismissLightWarningModal});
 const hashToModalId={"#terms-of-service":"terms-modal","#refund-policy":"terms-modal","#pulse-customs":"pulse-modal","#get-in-touch":"contact-modal"};
 const hashModalId=hashToModalId[window.location.hash];
 if(hashModalId){const target=modalControllers.find((controller)=>controller.modalId===hashModalId);if(target)target.open();}
 document.addEventListener("keydown",(event)=>{if(event.key!=="Escape")return;modalControllers.forEach(({modal,dismiss})=>{if(modal.classList.contains("is-open"))dismiss();});});
+if(lightWarningClose)lightWarningClose.addEventListener("click",dismissLightWarningModal);
+if(lightWarningModal)lightWarningModal.addEventListener("click",(event)=>{if(event.target===lightWarningModal)dismissLightWarningModal();});
+if(lightWarningContinue)lightWarningContinue.addEventListener("click",confirmLightWarningModal);
+if(introEnter)introEnter.addEventListener("click",closeIntroOverlay);
+document.addEventListener("keydown",(event)=>{
+  if(!introOpen)return;
+  if(event.key==="Enter"||event.key==="Escape"){
+    event.preventDefault();
+    closeIntroOverlay();
+  }
+});
 
 const initialTheme=getStoredPreference(themeStorageKey)||"dark";
 applyTheme(initialTheme);
 applyTextSize(getStoredPreference(textSizeStorageKey)||"normal");
 applyReducedMotion(getStoredPreference(motionStorageKey)||"false");
 applyContrast(getStoredPreference(contrastStorageKey)||"normal");
+applyLightWarning(getStoredPreference(lightWarningStorageKey)||"true");
 applyLanguage(getStoredPreference(languageStorageKey)||"en");
-if(themeToggleBtn){themeToggleBtn.addEventListener("click",()=>{const activeTheme=document.documentElement.getAttribute("data-theme")==="light"?"light":"dark";const nextTheme=activeTheme==="light"?"dark":"light";runSettingsTransition(()=>{applyTheme(nextTheme);savePreference(themeStorageKey,nextTheme);});});}
+if(getStoredPreference(introSeenStorageKey)!=="true")openIntroOverlay();
+if(themeToggleBtn){themeToggleBtn.addEventListener("click",()=>{const activeTheme=document.documentElement.getAttribute("data-theme")==="light"?"light":"dark";const nextTheme=activeTheme==="light"?"dark":"light";const showLightWarning=nextTheme==="light"&&document.documentElement.getAttribute("data-light-warning")!=="false";if(showLightWarning){pendingThemeSwitch=nextTheme;openLightWarningModal();return;}runSettingsTransition(()=>{applyTheme(nextTheme);savePreference(themeStorageKey,nextTheme);});});}
 if(textSizeToggle){textSizeToggle.addEventListener("click",()=>{const next=document.documentElement.getAttribute("data-text-size")==="large"?"normal":"large";runSettingsTransition(()=>{applyTextSize(next);savePreference(textSizeStorageKey,next);});});}
 if(motionToggle){motionToggle.addEventListener("click",()=>{const next=document.documentElement.getAttribute("data-reduce-motion")==="true"?"false":"true";runSettingsTransition(()=>{applyReducedMotion(next);savePreference(motionStorageKey,next);});});}
 if(contrastToggle){contrastToggle.addEventListener("click",()=>{const next=document.documentElement.getAttribute("data-contrast")==="high"?"normal":"high";runSettingsTransition(()=>{applyContrast(next);savePreference(contrastStorageKey,next);});});}
-languageButtons.forEach((button)=>{button.addEventListener("click",()=>{const next=(button.dataset.lang==="es"||button.dataset.lang==="zh")?button.dataset.lang:"en";runSettingsTransition(()=>{applyLanguage(next);savePreference(languageStorageKey,next);});});});
+if(lightWarningToggle){lightWarningToggle.addEventListener("click",()=>{const enabled=document.documentElement.getAttribute("data-light-warning")!=="false";const next=enabled?"false":"true";runSettingsTransition(()=>{applyLightWarning(next);savePreference(lightWarningStorageKey,next);});});}
+languageButtons.forEach((button)=>{button.addEventListener("click",()=>{const next=(button.dataset.lang==="es"||button.dataset.lang==="zh")?button.dataset.lang:"en";const loadingLabel=translations[next]?.settings_loading||translations.en.settings_loading;const loadingMs=3000+Math.floor(Math.random()*1001);runSettingsTransition(()=>{applyLanguage(next);savePreference(languageStorageKey,next);},{loadingLabel,loadingMs});});});
 
 const copyToast=document.getElementById("copy-toast");
 let copyToastTimer=null;

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -56,18 +56,18 @@
           </article>
           <article class="review-card">
             <div class="review-meta">
-              <img class="review-avatar" src="https://cdn.discordapp.com/avatars/737181735846019112/5548b3f20ca76bf3e353107632a1927f.webp?size=1024" alt="@.imjude. profile photo" loading="lazy" decoding="async">
-              <p class="review-author">@.imjude. (imjude)</p>
+              <img class="review-avatar" src="" alt="@.imjude. profile photo" loading="lazy" decoding="async">
+              <p class="review-author">placeholder (display)</p>
             </div>
-            <p class="review-text">"placeholder."</p>
-            <p class="review-rating" aria-label="4 out of 5 stars">&#9733;&#9733;&#9733;&#9733;&#9734;</p>
+            <p class="review-text">"placeholder"</p>
+            <p class="review-rating" aria-label="5 out of 5 stars">&#9733;&#9733;&#9733;&#9733;&#9733;</p>
           </article>
           <article class="review-card">
             <div class="review-meta">
-              <img class="review-avatar" src="https://cdn.discordapp.com/avatars/1399728978981290025/099f94250c4ceb63dc8066ce960b2da5.webp?size=1024" alt="@a182ajakqkqoeurvz profile photo" loading="lazy" decoding="async">
-              <p class="review-author">@a182ajakqkqoeurvz (mar)</p>
+              <img class="review-avatar" src="" alt="@a182ajakqkqoeurvz profile photo" loading="lazy" decoding="async">
+              <p class="review-author">@placeholder (display)</p>
             </div>
-            <p class="review-text">"placeholder."</p>
+            <p class="review-text">"placeholder"</p>
             <p class="review-rating" aria-label="5 out of 5 stars">&#9733;&#9733;&#9733;&#9733;&#9733;</p>
           </article>
         </div>
@@ -97,11 +97,7 @@
           <span class="footer-tool-label" data-i18n="footer_theme_toggle">Switch Theme</span>
         </button>
         <button class="footer-icon-btn" id="accessibility-open" type="button" aria-label="Open accessibility settings" title="Accessibility">
-          <svg class="footer-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <circle cx="9.5" cy="5" r="1.7"></circle>
-            <circle cx="15.5" cy="16.5" r="3.5"></circle>
-            <path d="M10 7.2v5.2h3.3M10 9.8h4.4M13.3 12.4l1.6 3.1M10 12.4l-2.1 3.8M12.7 19.5h3.3"></path>
-          </svg>
+          <img class="footer-icon" src="public/access.svg" alt="" aria-hidden="true">
           <span class="footer-tool-label" data-i18n="footer_accessibility">Accessibility</span>
         </button>
       </div>
@@ -194,9 +190,34 @@
         </div>
         <div class="a11y-language-switch" role="group" aria-label="Language selection">
           <button class="a11y-chip-btn is-active" id="lang-en" type="button" data-lang="en" aria-pressed="true">English</button>
-          <button class="a11y-chip-btn" id="lang-es" type="button" data-lang="es" aria-pressed="false">Español</button>
-          <button class="a11y-chip-btn" id="lang-zh" type="button" data-lang="zh" aria-pressed="false">普通话</button>
+          <button class="a11y-chip-btn" id="lang-es" type="button" data-lang="es" aria-pressed="false">EspaÃ±ol</button>
+          <button class="a11y-chip-btn" id="lang-zh" type="button" data-lang="zh" aria-pressed="false">æ™®é€šè¯</button>
         </div>
+      </div>
+      <div class="a11y-row">
+        <div class="a11y-copy">
+          <p class="a11y-label" data-i18n="a11y_light_warning_label">Light Mode Warning</p>
+          <p class="a11y-subtle" data-i18n="a11y_light_warning_subtle">Show a notice when switching to light mode.</p>
+        </div>
+        <button class="a11y-toggle" id="light-warning-toggle" type="button" aria-pressed="true">On</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="light-warning-modal" aria-hidden="true">
+    <section class="pulse-modal" role="dialog" aria-modal="true" aria-labelledby="light-warning-title" aria-describedby="light-warning-copy">
+      <div class="modal-head">
+        <h2 class="pulse-title" id="light-warning-title" data-i18n="light_warning_title">Light Mode Notice</h2>
+        <button class="pulse-close" id="light-warning-close" aria-label="Close light mode warning panel" data-i18n="close_btn">Close</button>
+      </div>
+      <p class="pulse-copy" id="light-warning-copy" data-i18n="light_warning_copy">Light mode can feel very bright. It is mainly recommended for people who find dark layouts hard to read in low-light spaces.</p>
+      <div class="modal-warning-controls">
+        <label class="modal-check" for="light-warning-disable">
+          <input id="light-warning-disable" type="checkbox">
+          <span class="modal-check-box" aria-hidden="true"></span>
+          <span class="modal-check-text" data-i18n="light_warning_disable_label">Don't show this again</span>
+        </label>
+        <button class="pulse-close" id="light-warning-continue" type="button" data-i18n="light_warning_continue_btn">Continue</button>
       </div>
     </section>
   </div>
@@ -215,3 +236,5 @@
   <script src="main.js"></script>
 </body>
 </html>
+
+
