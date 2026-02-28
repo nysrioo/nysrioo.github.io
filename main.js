@@ -1,4 +1,4 @@
-const techs = [
+const techsSection1 = [
   { name: "Node.js", slug: "nodedotjs" },
   { name: "JavaScript", slug: "javascript" },
   { name: "TypeScript", slug: "typescript" },
@@ -9,7 +9,10 @@ const techs = [
   { name: "HTML", slug: "html5" },
   { name: "CSS", slug: "css" },
   { name: "SCSS", slug: "sass" },
-  { name: "Elm", slug: "elm" },
+  { name: "Elm", slug: "elm" }
+];
+
+const techsSection2 = [
   { name: "Express", slug: "express" },
   { name: "MongoDB", slug: "mongodb" },
   { name: "Docker", slug: "docker" },
@@ -365,10 +368,10 @@ function iconUrl(slug){return `https://cdn.simpleicons.org/${slug}/BEBEBE`;}
 function buildChip(tech){const chip=document.createElement("span");chip.className="chip";chip.setAttribute("role","listitem");const icon=document.createElement("img");icon.src=iconUrl(tech.slug);icon.alt="";icon.loading="lazy";const text=document.createElement("span");text.textContent=tech.name;chip.append(icon,text);return chip;}
 function shuffle(list){const copy=[...list];for(let i=copy.length-1;i>0;i-=1){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]];}return copy;}
 function buildSegmentItems(list){const targetCount=18+Math.floor(Math.random()*9);const segment=[];while(segment.length<targetCount){segment.push(...shuffle(list));}return segment.slice(0,targetCount);}
-function populateRow(row){const track=row.querySelector(".marquee-track");if(!track)return null;const segment=buildSegmentItems(techs);const loop=[...segment,...segment,...segment];track.setAttribute("role","list");track.innerHTML="";loop.forEach((tech)=>{track.append(buildChip(tech));});const duration=Number(row.dataset.speed||"40");return{row,track,duration};}
+function populateRow(row,rowIndex){const track=row.querySelector(".marquee-track");if(!track)return null;const sourceList=rowIndex===0?techsSection1:techsSection2;const segment=buildSegmentItems(sourceList);const loop=[...segment,...segment,...segment];track.setAttribute("role","list");track.innerHTML="";loop.forEach((tech)=>{track.append(buildChip(tech));});const duration=Number(row.dataset.speed||"40");return{row,track,duration};}
 
 const marqueeArea=document.querySelector(".marquee-area");
-const marqueeRows=Array.from(document.querySelectorAll(".marquee-row")).map((row)=>populateRow(row)).filter(Boolean);
+const marqueeRows=Array.from(document.querySelectorAll(".marquee-row")).map((row,index)=>populateRow(row,index)).filter(Boolean);
 let marqueeHovered=false;
 let marqueeRunning=false;
 function marqueeTransformX(value){
