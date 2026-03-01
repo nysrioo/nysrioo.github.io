@@ -5,6 +5,7 @@
   --chip-text: #6f6f6f;
   --chip-border: #393939;
   --page-zoom: 1.25;
+  --page-block-pad: 2rem;
 }
 
 :root[data-theme="light"] {
@@ -46,15 +47,47 @@ body.intro-active {
   background-image: radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.06), transparent 52%);
 }
 
+.bg-noise::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 20%;
+  width: min(62vw, 760px);
+  height: min(62vw, 760px);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: 0.5;
+  background-image:
+    radial-gradient(rgba(255, 255, 255, 0.07) 0.65px, transparent 0.65px),
+    radial-gradient(rgba(255, 255, 255, 0.045) 0.65px, transparent 0.65px),
+    radial-gradient(rgba(255, 255, 255, 0.025) 0.5px, transparent 0.5px);
+  background-size: 2px 2px, 3px 3px, 5px 5px;
+  background-position: 0 0, 1px 1px, 2px 0;
+  background-blend-mode: screen, overlay, normal;
+  -webkit-mask-image: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.88) 58%, transparent 74%);
+  mask-image: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.88) 58%, transparent 74%);
+  filter: blur(0.22px);
+}
+
 .page {
   display: grid;
   grid-template-rows: 1fr auto;
   min-height: calc(100vh / var(--page-zoom));
+  min-height: calc(100dvh / var(--page-zoom));
   width: min(1120px, 94vw);
   margin: 0 auto;
-  padding: 2rem max(1.1rem, env(safe-area-inset-right)) 2rem max(1.1rem, env(safe-area-inset-left));
+  padding: var(--page-block-pad) max(1.1rem, env(safe-area-inset-right)) var(--page-block-pad) max(1.1rem, env(safe-area-inset-left));
   zoom: var(--page-zoom);
   transition: opacity 0.72s ease, transform 0.72s ease, filter 0.72s ease;
+}
+
+html[data-platform="macos"] {
+  --page-zoom: 1;
+  --page-block-pad: 2.35rem;
+}
+
+html[data-platform="macos"] .page {
+  min-height: 100dvh;
 }
 
 body.intro-active .page {
@@ -478,44 +511,95 @@ body.intro-exiting .page {
 
 .review-grid {
   margin-top: 0.78rem;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
+  position: relative;
+  display: block;
+  overflow: hidden;
+  height: auto;
+  transition: height 0.46s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .review-card {
-  border-radius: 0;
-  padding: 0.8rem 0.86rem;
-  background: transparent;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  position: absolute;
+  inset: 0;
+  border-radius: 0.95rem;
+  padding: 0.9rem 0.96rem;
+  border: 1px solid rgba(126, 126, 126, 0.28);
+  background:
+    radial-gradient(circle at 80% -10%, rgba(255, 255, 255, 0.08), transparent 44%),
+    linear-gradient(165deg, rgba(20, 20, 20, 0.78), rgba(6, 6, 6, 0.84));
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.34), 0 0 0 1px rgba(255, 255, 255, 0.02) inset;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translate3d(18px, 0, 0) scale(0.996);
+  will-change: transform, opacity;
+  transition:
+    opacity 0.38s ease-out,
+    transform 0.5s cubic-bezier(0.22, 0.74, 0.28, 1),
+    border-color 0.24s ease,
+    box-shadow 0.24s ease;
 }
 
-.review-card.has-separator {
-  position: relative;
-}
-
-.review-card.has-separator::before {
+.review-card::before {
   content: "";
   position: absolute;
-  left: -0.5rem;
-  top: 0.42rem;
-  bottom: 0.42rem;
-  width: 1px;
-  background: linear-gradient(to bottom, transparent 0%, rgba(136, 136, 136, 0.34) 18%, rgba(136, 136, 136, 0.34) 82%, transparent 100%);
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.03);
   pointer-events: none;
 }
 
 .review-card.is-hidden {
-  display: none;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
-.review-card.is-entering {
-  animation: review-page-in 0.28s ease;
+.review-card.is-active {
+  position: relative;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translate3d(0, 0, 0) scale(1);
+  z-index: 3;
+}
+
+.review-card.is-entering-right,
+.review-card.is-entering-left,
+.review-card.is-leaving-left,
+.review-card.is-leaving-right {
+  visibility: visible;
+  pointer-events: none;
+}
+
+.review-card.is-entering-right {
+  z-index: 2;
+  opacity: 0.01;
+  transform: translate3d(24px, 0, 0) scale(0.992);
+}
+
+.review-card.is-entering-left {
+  z-index: 2;
+  opacity: 0.01;
+  transform: translate3d(-24px, 0, 0) scale(0.992);
+}
+
+.review-card.is-leaving-left {
+  z-index: 1;
+  opacity: 0;
+  transform: translate3d(-24px, 0, 0) scale(0.992);
+}
+
+.review-card.is-leaving-right {
+  z-index: 1;
+  opacity: 0;
+  transform: translate3d(24px, 0, 0) scale(0.992);
 }
 
 .review-card:hover,
 .review-card:focus-within {
-  transform: translateY(-1px);
+  border-color: rgba(187, 187, 187, 0.5);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.44), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
 }
 
 .review-meta {
@@ -524,44 +608,96 @@ body.intro-exiting .page {
   gap: 0.55rem;
 }
 
+.review-author-stack {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
+}
+
 .review-avatar {
-  width: 1.62rem;
-  height: 1.62rem;
+  width: 1.86rem;
+  height: 1.86rem;
   border-radius: 50%;
   object-fit: cover;
-  border: 1px solid #4f4f4f;
+  border: 1px solid #646464;
   background: #131313;
   flex: 0 0 auto;
 }
 
 .review-text {
-  margin: 0.54rem 0 0;
-  color: #bebebe;
-  font-size: 0.72rem;
-  line-height: 1.58;
+  margin: 0.62rem 0 0;
+  color: #c6c6c6;
+  font-size: 0.73rem;
+  line-height: 1.62;
   text-wrap: pretty;
 }
 
 .review-author {
   margin: 0;
-  color: #e0e0e0;
-  font-size: 0.65rem;
-  font-weight: 500;
-  letter-spacing: 0.04em;
+  color: #f0f0f0;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
   text-transform: none;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.review-rating {
-  margin: 0.58rem 0 0;
+.review-role {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  width: fit-content;
+  padding: 0.14rem 0.38rem 0.14rem 0.26rem;
+  border: 1px solid rgba(195, 195, 195, 0.34);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
   color: #d2d2d2;
-  font-size: 0.59rem;
-  letter-spacing: 0.16em;
+  font-size: 0.52rem;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.review-role-cta {
+  appearance: none;
+  -webkit-appearance: none;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.review-role-cta:hover,
+.review-role-cta:focus-visible {
+  border-color: rgba(228, 228, 228, 0.62);
+  background: rgba(255, 255, 255, 0.09);
+  color: #f0f0f0;
+  transform: translateY(-1px);
+}
+
+.review-role-cta:focus-visible {
+  outline: none;
+}
+
+.review-role-logo {
+  width: 0.74rem;
+  height: 0.74rem;
+  border-radius: 0.2rem;
+  object-fit: contain;
+  flex: 0 0 auto;
+}
+
+.review-rating {
+  margin: 0.68rem 0 0;
+  color: #dddddd;
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
   line-height: 1;
   font-variant-ligatures: none;
-  opacity: 0.84;
+  opacity: 0.9;
 }
 
 .reviews-controls {
@@ -577,26 +713,27 @@ body.intro-exiting .page {
 }
 
 .reviews-nav {
-  border: 1px solid #585858;
+  border: 1px solid #676767;
   border-radius: 999px;
-  background: transparent;
-  color: #a9a9a9;
+  background: rgba(255, 255, 255, 0.02);
+  color: #bcbcbc;
   min-width: 5.3rem;
-  height: 2rem;
+  height: 2.08rem;
   font: inherit;
-  font-size: 0.56rem;
-  letter-spacing: 0.11em;
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  padding: 0 0.7rem;
+  padding: 0 0.78rem;
   line-height: 1;
   cursor: pointer;
-  transition: border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  transition: border-color 0.24s ease, color 0.24s ease, transform 0.24s ease, background-color 0.24s ease;
 }
 
 .reviews-nav:hover,
 .reviews-nav:focus-visible {
-  border-color: #8a8a8a;
-  color: #d4d4d4;
+  border-color: #9c9c9c;
+  background: rgba(255, 255, 255, 0.05);
+  color: #ececec;
   transform: translateY(-1px);
 }
 
@@ -608,15 +745,16 @@ body.intro-exiting .page {
 
 .reviews-timer,
 .work-timer {
-  height: 2px;
+  height: 4px;
   border-radius: 999px;
   overflow: hidden;
-  background: rgba(132, 132, 132, 0.24);
+  background: linear-gradient(to right, rgba(122, 122, 122, 0.22), rgba(132, 132, 132, 0.16));
 }
 
 .reviews-timer {
   flex: 1 1 auto;
   min-width: 2.6rem;
+  border: 1px solid rgba(134, 134, 134, 0.3);
 }
 
 .work-timer {
@@ -629,9 +767,25 @@ body.intro-exiting .page {
   display: block;
   height: 100%;
   width: 100%;
-  background: rgba(202, 202, 202, 0.54);
+  position: relative;
+  background: linear-gradient(90deg, rgba(222, 222, 222, 0.74), rgba(245, 245, 245, 0.88));
   transform-origin: left center;
   transform: scaleX(0);
+  will-change: transform;
+}
+
+.reviews-timer span::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.55) 48%, transparent 100%);
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.reviews-timer.is-running span::after {
+  opacity: 0.65;
+  animation: reviews-sheen 1.3s linear infinite;
 }
 
 .site-footer {
@@ -1408,6 +1562,13 @@ html[data-theme="light"] .bg-noise {
   background-image: radial-gradient(circle at 50% 20%, rgba(0, 0, 0, 0.06), transparent 52%);
 }
 
+html[data-theme="light"] .bg-noise::before {
+  background-image:
+    radial-gradient(rgba(0, 0, 0, 0.06) 0.65px, transparent 0.65px),
+    radial-gradient(rgba(0, 0, 0, 0.04) 0.65px, transparent 0.65px),
+    radial-gradient(rgba(0, 0, 0, 0.022) 0.5px, transparent 0.5px);
+}
+
 html[data-theme="light"] .intro-overlay {
   background: radial-gradient(circle at 18% 8%, rgba(0, 0, 0, 0.06), transparent 40%), #ececec;
 }
@@ -1479,7 +1640,11 @@ html[data-theme="light"] .review-rating {
 }
 
 html[data-theme="light"] .review-card {
-  background: transparent;
+  border-color: rgba(120, 120, 120, 0.35);
+  background:
+    radial-gradient(circle at 80% -10%, rgba(0, 0, 0, 0.06), transparent 44%),
+    linear-gradient(165deg, rgba(255, 255, 255, 0.9), rgba(244, 244, 244, 0.9));
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.03) inset;
 }
 
 html[data-theme="light"] .reviews {
@@ -1490,17 +1655,14 @@ html[data-theme="light"] .reviews::before {
   background: linear-gradient(to right, transparent 0%, rgba(112, 112, 112, 0.34) 20%, rgba(112, 112, 112, 0.34) 80%, transparent 100%);
 }
 
-html[data-theme="light"] .review-card.has-separator {
-  border-left: none;
-}
-
-html[data-theme="light"] .review-card.has-separator::before {
-  background: linear-gradient(to bottom, transparent 0%, rgba(104, 104, 104, 0.34) 18%, rgba(104, 104, 104, 0.34) 82%, transparent 100%);
+html[data-theme="light"] .review-card::before {
+  border-color: rgba(0, 0, 0, 0.05);
 }
 
 html[data-theme="light"] .review-card:hover,
 html[data-theme="light"] .review-card:focus-within {
-  transform: translateY(-2px);
+  border-color: rgba(78, 78, 78, 0.5);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.16), 0 0 0 1px rgba(0, 0, 0, 0.05) inset;
 }
 
 html[data-theme="light"] .review-avatar {
@@ -1510,6 +1672,19 @@ html[data-theme="light"] .review-avatar {
 
 html[data-theme="light"] .review-author {
   color: #1d1d1d;
+}
+
+html[data-theme="light"] .review-role {
+  border-color: rgba(88, 88, 88, 0.34);
+  background: rgba(0, 0, 0, 0.04);
+  color: #303030;
+}
+
+html[data-theme="light"] .review-role-cta:hover,
+html[data-theme="light"] .review-role-cta:focus-visible {
+  border-color: rgba(45, 45, 45, 0.62);
+  background: rgba(0, 0, 0, 0.08);
+  color: #121212;
 }
 
 html[data-theme="light"] .review-text {
@@ -1522,24 +1697,30 @@ html[data-theme="light"] .review-rating {
 }
 
 html[data-theme="light"] .reviews-nav {
-  border-color: #8d8d8d;
-  color: #555555;
+  border-color: #8b8b8b;
+  background: rgba(0, 0, 0, 0.02);
+  color: #4c4c4c;
 }
 
 html[data-theme="light"] .reviews-nav:hover,
 html[data-theme="light"] .reviews-nav:focus-visible {
-  border-color: #555555;
-  color: #202020;
+  border-color: #4f4f4f;
+  background: rgba(0, 0, 0, 0.05);
+  color: #171717;
 }
 
 html[data-theme="light"] .reviews-timer,
 html[data-theme="light"] .work-timer {
-  background: rgba(92, 92, 92, 0.18);
+  background: linear-gradient(to right, rgba(92, 92, 92, 0.18), rgba(92, 92, 92, 0.1));
 }
 
 html[data-theme="light"] .reviews-timer span,
 html[data-theme="light"] .work-timer span {
-  background: rgba(84, 84, 84, 0.42);
+  background: linear-gradient(90deg, rgba(68, 68, 68, 0.62), rgba(46, 46, 46, 0.74));
+}
+
+html[data-theme="light"] .reviews-timer {
+  border-color: rgba(102, 102, 102, 0.3);
 }
 
 html[data-theme="light"] .site-footer {
@@ -1731,6 +1912,15 @@ html[data-reduce-motion="true"] *::after {
   }
 }
 
+@keyframes reviews-sheen {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 @keyframes review-page-in {
   from {
     opacity: 0;
@@ -1868,41 +2058,26 @@ html[data-reduce-motion="true"] *::after {
 
 .review-grid {
   margin-top: 0.58rem;
-  grid-template-columns: 1fr;
-  gap: 0.78rem;
+  display: block;
   touch-action: pan-y;
 }
 
   .review-card {
-    padding: 0.74rem 0.72rem;
+    padding: 0.76rem 0.72rem;
+    border-radius: 0.78rem;
   }
-
-  .review-card.has-separator {
-    position: relative;
-  }
-
-.review-card.has-separator::before {
-  left: 50%;
-  right: auto;
-  top: -0.4rem;
-  bottom: auto;
-  width: min(220px, 62%);
-  transform: translateX(-50%);
-  height: 1px;
-  background: linear-gradient(to right, transparent 0%, rgba(136, 136, 136, 0.34) 18%, rgba(136, 136, 136, 0.34) 82%, transparent 100%);
-}
 
   .review-text {
-    font-size: 0.69rem;
+    font-size: 0.7rem;
   }
 
   .review-author {
-    font-size: 0.64rem;
+    font-size: 0.65rem;
   }
 
   .review-rating {
-    font-size: 0.58rem;
-    letter-spacing: 0.14em;
+    font-size: 0.57rem;
+    letter-spacing: 0.17em;
   }
 
 .reviews-controls {
@@ -1920,7 +2095,7 @@ html[data-reduce-motion="true"] *::after {
 
 .reviews-timer {
   min-width: 1.6rem;
-  height: 3px;
+  height: 4px;
 }
 
   .chip {
@@ -2036,14 +2211,6 @@ html[data-reduce-motion="true"] *::after {
   html[data-theme="light"] .footer-icon-btn {
     color: #4d4d4d;
     background-image: linear-gradient(#4d4d4d, #4d4d4d);
-  }
-
-  html[data-theme="light"] .review-card.has-separator {
-    border-top: none;
-  }
-
-  html[data-theme="light"] .review-card.has-separator::before {
-    background: linear-gradient(to right, transparent 0%, rgba(104, 104, 104, 0.34) 18%, rgba(104, 104, 104, 0.34) 82%, transparent 100%);
   }
 
   html[data-theme="light"] #theme-toggle-btn {

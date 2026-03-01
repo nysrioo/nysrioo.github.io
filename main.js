@@ -47,6 +47,17 @@ const contrastStorageKey="nysrioo-contrast";
 const lightWarningStorageKey="nysrioo-light-warning-enabled";
 const languageStorageKey="nysrioo-language";
 const introSeenStorageKey="nysrioo-intro-seen";
+function applyPlatformLayout(){
+  const platform=navigator.userAgentData?.platform||navigator.platform||"";
+  const ua=navigator.userAgent||"";
+  const isIOS=/iPad|iPhone|iPod/i.test(ua)||(platform==="MacIntel"&&navigator.maxTouchPoints>1);
+  const isMac=/Mac/i.test(platform)||/Macintosh|Mac OS X/i.test(ua);
+  if(isMac&&!isIOS){
+    document.documentElement.setAttribute("data-platform","macos");
+    return;
+  }
+  document.documentElement.removeAttribute("data-platform");
+}
 const translations={
   en:{
     tagline:"Self-taught programmer",
@@ -397,58 +408,211 @@ const reviewGrid=document.querySelector(".review-grid");
 const reviewsControls=document.getElementById("reviews-controls");
 const reviewsPrev=document.getElementById("reviews-prev");
 const reviewsNext=document.getElementById("reviews-next");
+const pulseCardTriggers=Array.from(document.querySelectorAll(".review-pulse-open"));
+const reviewsTimerBar=document.getElementById("reviews-timer-bar");
+const reviewAutoplayMs=5000;
+const reviewTransitionMs=500;
 let reviewPage=0;
 let reviewTouchStartX=0;
 let reviewTouchStartY=0;
 let reviewSwipeTracking=false;
+let reviewAutoplayTimer=null;
+let reviewTransitionTimer=null;
+let reviewIsAnimating=false;
+let reviewAutoplayStartedAt=0;
+let reviewAutoplayRemainingMs=reviewAutoplayMs;
+function clampReviewNumber(value,min,max){return Math.min(Math.max(value,min),max);}
 function getReviewCards(){return reviewGrid?Array.from(reviewGrid.querySelectorAll(".review-card")):[];}
-function reviewsPerPage(){return window.matchMedia("(max-width: 700px)").matches?1:3;}
-function renderReviewPage(page){
+function updateReviewControls(reviewCards){
+  const hasMultipleReviews=reviewCards.length>1;
+  if(reviewsControls)reviewsControls.classList.toggle("is-visible",hasMultipleReviews);
+  if(reviewsPrev)reviewsPrev.disabled=!hasMultipleReviews;
+  if(reviewsNext)reviewsNext.disabled=!hasMultipleReviews;
+}
+function clearReviewMotionState(card){
+  if(!card)return;
+  card.classList.remove("is-entering-right","is-entering-left","is-leaving-left","is-leaving-right");
+}
+function syncReviewGridHeight(){
+  if(!reviewGrid)return;
+  const activeCard=reviewGrid.querySelector(".review-card.is-active");
+  if(!activeCard)return;
+  reviewGrid.style.height=`${activeCard.offsetHeight}px`;
+}
+function setReviewsTimerProgress(progress,durationMs,active){
+  if(!reviewsTimerBar)return;
+  const safeProgress=clampReviewNumber(Number(progress)||0,0,1);
+  const safeDuration=Math.max(0,Math.floor(Number(durationMs)||0));
+  reviewsTimerBar.style.transition="none";
+  reviewsTimerBar.style.transform=`scaleX(${safeProgress})`;
+  reviewsTimerBar.parentElement?.classList.toggle("is-running",Boolean(active));
+  if(!active||safeDuration<=0)return;
+  requestAnimationFrame(()=>{requestAnimationFrame(()=>{reviewsTimerBar.style.transition=`transform ${safeDuration}ms linear`;reviewsTimerBar.style.transform="scaleX(1)";});});
+}
+function clearReviewAutoplayTimer(){
+  if(reviewAutoplayTimer)clearTimeout(reviewAutoplayTimer);
+  reviewAutoplayTimer=null;
+}
+function getReviewAutoplayProgress(){
+  return clampReviewNumber(1-(reviewAutoplayRemainingMs/reviewAutoplayMs),0,1);
+}
+function queueReviewAutoplayTick(){
   const reviewCards=getReviewCards();
-  if(!reviewCards.length)return;
-  const hasOverflow=reviewCards.length>3;
-  if(!hasOverflow){
-    reviewPage=0;
-    reviewCards.forEach((card)=>{card.classList.remove("is-hidden");});
-    const visibleCards=reviewCards.filter((card)=>!card.classList.contains("is-hidden"));
-    visibleCards.forEach((card,index)=>{card.classList.toggle("has-separator",index>0);});
-    if(reviewsControls)reviewsControls.classList.remove("is-visible");
-    if(reviewsPrev)reviewsPrev.disabled=true;
-    if(reviewsNext)reviewsNext.disabled=true;
+  clearReviewAutoplayTimer();
+  if(reviewCards.length<=1){
+    reviewAutoplayStartedAt=0;
+    reviewAutoplayRemainingMs=reviewAutoplayMs;
+    setReviewsTimerProgress(0,0,false);
     return;
   }
-  const perPage=reviewsPerPage();
-  const totalPages=Math.max(1,Math.ceil(reviewCards.length/perPage));
-  reviewPage=(page+totalPages)%totalPages;
-  const start=reviewPage*perPage;
-  const end=start+perPage;
-  reviewCards.forEach((card,index)=>{card.classList.toggle("is-hidden",index<start||index>=end);});
-  const visibleCards=reviewCards.filter((card)=>!card.classList.contains("is-hidden"));
-  visibleCards.forEach((card,index)=>{card.classList.toggle("has-separator",index>0);});
-  if(reviewsControls)reviewsControls.classList.add("is-visible");
-  if(reviewsPrev)reviewsPrev.disabled=false;
-  if(reviewsNext)reviewsNext.disabled=false;
+  const remaining=clampReviewNumber(reviewAutoplayRemainingMs,20,reviewAutoplayMs);
+  reviewAutoplayStartedAt=performance.now();
+  setReviewsTimerProgress(getReviewAutoplayProgress(),remaining,true);
+  reviewAutoplayTimer=setTimeout(()=>{
+    reviewAutoplayTimer=null;
+    reviewAutoplayStartedAt=0;
+    reviewAutoplayRemainingMs=reviewAutoplayMs;
+    renderReviewPage(reviewPage+1,{restartAutoplay:false,direction:1});
+    queueReviewAutoplayTick();
+  },remaining);
+}
+function stopReviewAutoplay(resetTimer=true){
+  if(reviewAutoplayStartedAt){
+    const elapsed=performance.now()-reviewAutoplayStartedAt;
+    reviewAutoplayRemainingMs=clampReviewNumber(reviewAutoplayRemainingMs-elapsed,0,reviewAutoplayMs);
+  }
+  reviewAutoplayStartedAt=0;
+  clearReviewAutoplayTimer();
+  if(resetTimer)reviewAutoplayRemainingMs=reviewAutoplayMs;
+  setReviewsTimerProgress(getReviewAutoplayProgress(),0,false);
+}
+function startReviewAutoplay(options={}){
+  const shouldReset=options.reset===true;
+  if(shouldReset)reviewAutoplayRemainingMs=reviewAutoplayMs;
+  const reviewCards=getReviewCards();
+  if(reviewCards.length<=1){
+    reviewAutoplayRemainingMs=reviewAutoplayMs;
+    stopReviewAutoplay(true);
+    return;
+  }
+  queueReviewAutoplayTick();
+}
+function renderReviewPage(page,options={}){
+  const reviewCards=getReviewCards();
+  if(!reviewCards.length)return;
+  const totalPages=Math.max(1,reviewCards.length);
+  const nextPage=(page+totalPages)%totalPages;
+  const direction=options.direction===-1?-1:1;
+  if(reviewTransitionTimer){clearTimeout(reviewTransitionTimer);reviewTransitionTimer=null;}
+  if(reviewIsAnimating){
+    reviewCards.forEach((card,index)=>{
+      clearReviewMotionState(card);
+      const isCurrent=index===reviewPage;
+      card.classList.toggle("is-active",isCurrent);
+      card.classList.toggle("is-hidden",!isCurrent);
+      card.setAttribute("aria-hidden",isCurrent?"false":"true");
+    });
+    reviewIsAnimating=false;
+  }
+  if(reviewPage===nextPage&&options.immediate!==true){
+    updateReviewControls(reviewCards);
+    if(options.restartAutoplay!==false)startReviewAutoplay({reset:true});
+    return;
+  }
+  if(options.immediate===true||reviewPage<0){
+    reviewPage=nextPage;
+    reviewCards.forEach((card,index)=>{
+      clearReviewMotionState(card);
+      const isCurrent=index===reviewPage;
+      card.classList.toggle("is-active",isCurrent);
+      card.classList.toggle("is-hidden",!isCurrent);
+      card.setAttribute("aria-hidden",isCurrent?"false":"true");
+    });
+    updateReviewControls(reviewCards);
+    syncReviewGridHeight();
+    if(options.restartAutoplay!==false)startReviewAutoplay({reset:true});
+    return;
+  }
+  const currentCard=reviewCards[reviewPage];
+  const nextCard=reviewCards[nextPage];
+  if(!currentCard||!nextCard){
+    reviewPage=nextPage;
+    reviewCards.forEach((card,index)=>{
+      const isCurrent=index===reviewPage;
+      card.classList.toggle("is-active",isCurrent);
+      card.classList.toggle("is-hidden",!isCurrent);
+      card.setAttribute("aria-hidden",isCurrent?"false":"true");
+    });
+    updateReviewControls(reviewCards);
+    syncReviewGridHeight();
+    if(options.restartAutoplay!==false)startReviewAutoplay({reset:true});
+    return;
+  }
+  clearReviewMotionState(currentCard);
+  clearReviewMotionState(nextCard);
+  nextCard.classList.remove("is-hidden");
+  nextCard.setAttribute("aria-hidden","false");
+  nextCard.classList.add(direction===1?"is-entering-right":"is-entering-left");
+  const maxHeight=Math.max(currentCard.offsetHeight,nextCard.offsetHeight);
+  reviewGrid.style.height=`${maxHeight}px`;
+  reviewIsAnimating=true;
+  requestAnimationFrame(()=>{
+    currentCard.classList.add(direction===1?"is-leaving-left":"is-leaving-right");
+    currentCard.classList.remove("is-active");
+    currentCard.setAttribute("aria-hidden","true");
+    nextCard.classList.add("is-active");
+  });
+  reviewTransitionTimer=setTimeout(()=>{
+    clearReviewMotionState(currentCard);
+    currentCard.classList.add("is-hidden");
+    clearReviewMotionState(nextCard);
+    nextCard.classList.remove("is-hidden");
+    reviewPage=nextPage;
+    reviewIsAnimating=false;
+    reviewTransitionTimer=null;
+    syncReviewGridHeight();
+  },reviewTransitionMs+70);
+  updateReviewControls(reviewCards);
+  if(options.restartAutoplay!==false)startReviewAutoplay({reset:true});
 }
 function initReviewPagination(){
   if(!reviewGrid)return;
-  if(reviewsPrev)reviewsPrev.addEventListener("click",()=>{renderReviewPage(reviewPage-1);});
-  if(reviewsNext)reviewsNext.addEventListener("click",()=>{renderReviewPage(reviewPage+1);});
+  reviewPage=-1;
+  if(reviewsPrev)reviewsPrev.addEventListener("click",()=>{renderReviewPage(reviewPage-1,{direction:-1});});
+  if(reviewsNext)reviewsNext.addEventListener("click",()=>{renderReviewPage(reviewPage+1,{direction:1});});
   reviewGrid.addEventListener("touchstart",(event)=>{if(!window.matchMedia("(max-width: 700px)").matches)return;if(event.touches.length!==1)return;const touch=event.touches[0];if(!touch)return;reviewTouchStartX=touch.clientX;reviewTouchStartY=touch.clientY;reviewSwipeTracking=true;},{passive:true});
   reviewGrid.addEventListener("touchmove",(event)=>{if(!reviewSwipeTracking)return;const touch=event.touches&&event.touches[0];if(!touch)return;const deltaX=Math.abs(touch.clientX-reviewTouchStartX);const deltaY=Math.abs(touch.clientY-reviewTouchStartY);if(deltaY>deltaX&&deltaY>14)reviewSwipeTracking=false;},{passive:true});
-  reviewGrid.addEventListener("touchend",(event)=>{if(!reviewSwipeTracking)return;reviewSwipeTracking=false;if(!window.matchMedia("(max-width: 700px)").matches)return;const touch=event.changedTouches&&event.changedTouches[0];if(!touch)return;const deltaX=touch.clientX-reviewTouchStartX;const deltaY=touch.clientY-reviewTouchStartY;if(Math.abs(deltaX)<54||Math.abs(deltaX)<Math.abs(deltaY)*1.2)return;renderReviewPage(deltaX<0?reviewPage+1:reviewPage-1);},{passive:true});
+  reviewGrid.addEventListener("touchend",(event)=>{if(!reviewSwipeTracking)return;reviewSwipeTracking=false;if(!window.matchMedia("(max-width: 700px)").matches)return;const touch=event.changedTouches&&event.changedTouches[0];if(!touch)return;const deltaX=touch.clientX-reviewTouchStartX;const deltaY=touch.clientY-reviewTouchStartY;if(Math.abs(deltaX)<54||Math.abs(deltaX)<Math.abs(deltaY)*1.2)return;renderReviewPage(deltaX<0?reviewPage+1:reviewPage-1,{direction:deltaX<0?1:-1});},{passive:true});
   reviewGrid.addEventListener("touchcancel",()=>{reviewSwipeTracking=false;},{passive:true});
-  window.addEventListener("resize",()=>{renderReviewPage(reviewPage);});
-  renderReviewPage(0);
+  window.addEventListener("resize",()=>{syncReviewGridHeight();});
+  const reviewCards=getReviewCards();
+  const judeIndex=reviewCards.findIndex((card)=>{
+    const author=card.querySelector(".review-author");
+    const handle=(author?.textContent||"").toLowerCase();
+    return handle.includes(".imjude.");
+  });
+  renderReviewPage(judeIndex>=0?judeIndex:0,{immediate:true});
 }
 initReviewPagination();
 
 function updateBodyModalState(){const hasOpen=document.querySelector(".modal-backdrop.is-open");document.body.classList.toggle("modal-open",Boolean(hasOpen));}
 function setupModal(openId,modalId,closeId,options={}){const trigger=document.getElementById(openId);const modal=document.getElementById(modalId);const close=document.getElementById(closeId);if(!trigger||!modal||!close)return null;const open=()=>{modal.classList.add("is-open");modal.setAttribute("aria-hidden","false");if(typeof options.onOpen==="function")options.onOpen();updateBodyModalState();};const dismiss=()=>{modal.classList.remove("is-open");modal.setAttribute("aria-hidden","true");if(typeof options.onClose==="function")options.onClose();updateBodyModalState();};trigger.addEventListener("click",(event)=>{event.preventDefault();open();});close.addEventListener("click",dismiss);modal.addEventListener("click",(event)=>{if(event.target===modal)dismiss();});return{openId,modalId,modal,open,dismiss};}
 
-const modalControllers=[setupModal("terms-open","terms-modal","terms-close"),setupModal("pulse-open","pulse-modal","pulse-close"),setupModal("contact-open","contact-modal","contact-close")].filter(Boolean);
+const termsController=setupModal("terms-open","terms-modal","terms-close");
+const pulseController=setupModal("pulse-open","pulse-modal","pulse-close");
+const contactController=setupModal("contact-open","contact-modal","contact-close");
+const modalControllers=[termsController,pulseController,contactController].filter(Boolean);
 const accessibilityController=setupModal("accessibility-open","accessibility-modal","accessibility-close");
 if(accessibilityController)modalControllers.push(accessibilityController);
 if(lightWarningModal)modalControllers.push({modalId:"light-warning-modal",modal:lightWarningModal,dismiss:dismissLightWarningModal});
+if(pulseController&&pulseCardTriggers.length){
+  pulseCardTriggers.forEach((trigger)=>{
+    trigger.addEventListener("click",(event)=>{
+      event.preventDefault();
+      pulseController.open();
+    });
+  });
+}
 const hashToModalId={"#terms-of-service":"terms-modal","#refund-policy":"terms-modal","#pulse-customs":"pulse-modal","#get-in-touch":"contact-modal"};
 const hashModalId=hashToModalId[window.location.hash];
 if(hashModalId){const target=modalControllers.find((controller)=>controller.modalId===hashModalId);if(target)target.open();}
@@ -466,6 +630,7 @@ document.addEventListener("keydown",(event)=>{
 });
 
 const initialTheme=getStoredPreference(themeStorageKey)||"dark";
+applyPlatformLayout();
 applyTheme(initialTheme);
 applyTextSize(getStoredPreference(textSizeStorageKey)||"normal");
 applyReducedMotion(getStoredPreference(motionStorageKey)||"false");
