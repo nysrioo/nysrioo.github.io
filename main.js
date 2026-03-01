@@ -273,3 +273,10 @@ i.style.left="-9999px",document.body.appendChild(i),i.select(),document.execComm
 ;i&&(i===lastCopiedValue&&t-lastCopiedAt<3e3||(await copyText(i),lastCopiedValue=i,lastCopiedAt=t,showCopyToast(i)))}
 document.querySelectorAll("[data-copy]").forEach(e=>{e.addEventListener("click",()=>{copyFromElement(e)}),
 e.addEventListener("keydown",t=>{"Enter"!==t.key&&" "!==t.key||(t.preventDefault(),copyFromElement(e))})});
+const viewCounterElement=document.getElementById("view-counter"),viewCountElement=document.getElementById("view-count"),viewCounterStorageKey="nysrioo-local-views",viewCounterOffset=232,viewCounterNamespace="nysrioo-portfolio",viewCounterKey="page-views";
+function formatViewCount(e){const t=Number(e);return Number.isFinite(t)&&t>0?new Intl.NumberFormat("en-US").format(Math.floor(t)):"233"}
+function setViewCount(e){if(!viewCounterElement||!viewCountElement)return;const t=formatViewCount(e);viewCountElement.textContent=t,viewCounterElement.setAttribute("aria-label",`Page views: ${t}`)}
+function nextLocalViewCount(){let e=Number(getStoredPreference(viewCounterStorageKey));return Number.isFinite(e)&&e>=233?e+=1:e=233,savePreference(viewCounterStorageKey,String(e)),e}
+async function fetchRemoteViewCount(){const e=`https://api.countapi.xyz/hit/${encodeURIComponent(viewCounterNamespace)}/${encodeURIComponent(viewCounterKey)}`;const t=await fetch(e,{cache:"no-store"});if(!t.ok)throw new Error("View counter request failed");const i=await t.json(),n=Number(i?.value);if(!Number.isFinite(n)||n<1)throw new Error("View counter value invalid");return n+viewCounterOffset}
+async function initViewCounter(){if(!viewCounterElement||!viewCountElement)return;setViewCount(233);try{const e=await fetchRemoteViewCount();setViewCount(e),savePreference(viewCounterStorageKey,String(e))}catch(e){setViewCount(nextLocalViewCount())}}
+initViewCounter();
