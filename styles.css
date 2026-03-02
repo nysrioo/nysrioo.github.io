@@ -86,6 +86,7 @@ body.intro-exiting .page{animation:.95s cubic-bezier(.22,1,.36,1) forwards intro
 .review-role-cta:focus-visible,.review-role-cta:hover{border-color:rgba(228,228,228,.62);background:rgba(255,255,255,.09);color:#f0f0f0;transform:translateY(-1px)}
 .review-role-cta:focus-visible{outline:0}
 .review-role-logo{width:.74rem;height:.74rem;border-radius:.2rem;object-fit:contain;flex:0 0 auto}
+.review-role-logo-lumera{width:.88rem;height:.88rem}
 .review-rating{margin:.68rem 0 0;color:#ddd;font-size:.62rem;letter-spacing:.2em;line-height:1;font-variant-ligatures:none;opacity:.9}
 .reviews-controls{margin-top:.72rem;display:none;align-items:center;justify-content:space-between;gap:.7rem}
 .reviews-controls.is-visible{display:flex}
