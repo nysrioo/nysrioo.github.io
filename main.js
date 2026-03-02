@@ -1,11 +1,10 @@
 const techsSection1=[{name:"Node.js",slug:"nodedotjs"},{name:"JavaScript",slug:"javascript"},{name:"TypeScript",
 slug:"typescript"},{name:"React",slug:"react"},{name:"Next.js",slug:"nextdotjs"},{name:"Vite",slug:"vite"},{
 name:"Tailwind",slug:"tailwindcss"},{name:"HTML",slug:"html5"},{name:"CSS",slug:"css"},{name:"SCSS",slug:"sass"},{
-name:"Elm",slug:"elm"}],techsSection2=[{name:"Express",slug:"express"},{name:"MongoDB",slug:"mongodb"},{name:"Docker",
+name:"Elm",slug:"elm"},{name:"Railway",slug:"railway"},{name:"Hostinger",slug:"hostinger"},{name:"Firebase",slug:"firebase"}],techsSection2=[{name:"Express",slug:"express"},{name:"MongoDB",slug:"mongodb"},{name:"Docker",
 slug:"docker"},{name:"Git",slug:"git"},{name:"Cloudflare",slug:"cloudflare"},{name:"Vercel",slug:"vercel"},{
 name:"Webflow",slug:"webflow"},{name:"discord.js",slug:"discorddotjs"},{name:"Swift",slug:"swift"},{name:"Java",
-slug:"openjdk"},{name:"SQL",slug:"mysql"
-}],themeToggleBtn=document.getElementById("theme-toggle-btn"),textSizeToggle=document.getElementById("text-size-toggle"),motionToggle=document.getElementById("motion-toggle"),contrastToggle=document.getElementById("contrast-toggle"),introOverlay=document.getElementById("intro-overlay"),introEnter=document.getElementById("intro-enter"),lightWarningToggle=document.getElementById("light-warning-toggle"),lightWarningModal=document.getElementById("light-warning-modal"),lightWarningClose=document.getElementById("light-warning-close"),lightWarningDisable=document.getElementById("light-warning-disable"),lightWarningContinue=document.getElementById("light-warning-continue"),languageButtons=Array.from(document.querySelectorAll(".a11y-chip-btn[data-lang]")),uiTransitionOverlay=document.getElementById("ui-transition-overlay"),uiTransitionText=document.querySelector(".ui-transition-text"),themeStorageKey="nysrioo-theme",textSizeStorageKey="nysrioo-text-size",motionStorageKey="nysrioo-reduce-motion",contrastStorageKey="nysrioo-contrast",lightWarningStorageKey="nysrioo-light-warning-enabled",languageStorageKey="nysrioo-language",introSeenStorageKey="nysrioo-intro-seen"
+slug:"openjdk"},{name:"SQL",slug:"mysql"}],themeToggleBtn=document.getElementById("theme-toggle-btn"),textSizeToggle=document.getElementById("text-size-toggle"),motionToggle=document.getElementById("motion-toggle"),contrastToggle=document.getElementById("contrast-toggle"),introOverlay=document.getElementById("intro-overlay"),introEnter=document.getElementById("intro-enter"),lightWarningToggle=document.getElementById("light-warning-toggle"),lightWarningModal=document.getElementById("light-warning-modal"),lightWarningClose=document.getElementById("light-warning-close"),lightWarningDisable=document.getElementById("light-warning-disable"),lightWarningContinue=document.getElementById("light-warning-continue"),languageButtons=Array.from(document.querySelectorAll(".a11y-chip-btn[data-lang]")),uiTransitionOverlay=document.getElementById("ui-transition-overlay"),uiTransitionText=document.querySelector(".ui-transition-text"),themeStorageKey="nysrioo-theme",textSizeStorageKey="nysrioo-text-size",motionStorageKey="nysrioo-reduce-motion",contrastStorageKey="nysrioo-contrast",lightWarningStorageKey="nysrioo-light-warning-enabled",languageStorageKey="nysrioo-language",introSeenStorageKey="nysrioo-intro-seen"
 ;function applyPlatformLayout(){
 const e=navigator.userAgentData?.platform||navigator.platform||"",t=navigator.userAgent||"",i=/iPad|iPhone|iPod/i.test(t)||"MacIntel"===e&&navigator.maxTouchPoints>1
 ;!/Mac/i.test(e)&&!/Macintosh|Mac OS X/i.test(t)||i?document.documentElement.removeAttribute("data-platform"):document.documentElement.setAttribute("data-platform","macos")
@@ -211,9 +210,7 @@ if(!reviewSwipeTracking)return;if(reviewSwipeTracking=!1,!window.matchMedia("(ma
 ;const i=t.clientX-reviewTouchStartX,n=t.clientY-reviewTouchStartY
 ;Math.abs(i)<54||Math.abs(i)<1.2*Math.abs(n)||renderReviewPage(i<0?reviewPage+1:reviewPage-1,{direction:i<0?1:-1})},{
 passive:!0}),reviewGrid.addEventListener("touchcancel",()=>{reviewSwipeTracking=!1},{passive:!0}),
-window.addEventListener("resize",()=>{syncReviewGridHeight()});const e=getReviewCards().findIndex(e=>{
-const t=e.querySelector(".review-author");return(t?.textContent||"").toLowerCase().includes(".imjude.")})
-;renderReviewPage(e>=0?e:0,{immediate:!0})}function updateBodyModalState(){
+window.addEventListener("resize",()=>{syncReviewGridHeight()});const e=getReviewCards(),t=shuffle(e);t.forEach(e=>{reviewGrid.append(e)});const i=t.length?Math.floor(Math.random()*t.length):0;renderReviewPage(i,{immediate:!0})}function updateBodyModalState(){
 const e=document.querySelector(".modal-backdrop.is-open");document.body.classList.toggle("modal-open",Boolean(e))}
 function setupModal(e,t,i,n={}){
 const o=document.getElementById(e),r=document.getElementById(t),a=document.getElementById(i);if(!o||!r||!a)return null
@@ -280,3 +277,6 @@ function nextLocalViewCount(){let e=Number(getStoredPreference(viewCounterStorag
 async function fetchRemoteViewCount(){const e=`https://api.countapi.xyz/hit/${encodeURIComponent(viewCounterNamespace)}/${encodeURIComponent(viewCounterKey)}`;const t=await fetch(e,{cache:"no-store"});if(!t.ok)throw new Error("View counter request failed");const i=await t.json(),n=Number(i?.value);if(!Number.isFinite(n)||n<1)throw new Error("View counter value invalid");return n+viewCounterOffset}
 async function initViewCounter(){if(!viewCounterElement||!viewCountElement)return;setViewCount(233);try{const e=await fetchRemoteViewCount();setViewCount(e),savePreference(viewCounterStorageKey,String(e))}catch(e){setViewCount(nextLocalViewCount())}}
 initViewCounter();
+
+
+
